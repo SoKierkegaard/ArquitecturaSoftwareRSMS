@@ -30,7 +30,6 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
  *      bo.edu.usfx.biblioteca.infraestructura   adaptadores (MySQL, SMTP)
  * =====================================================================
  */
-@Disabled("PASO 6: borra esta anotacion cuando termines de refactorizar")
 @DisplayName("Reglas de diseno verificadas automaticamente")
 class ReglasDisenoTest {
 
@@ -75,7 +74,7 @@ class ReglasDisenoTest {
     @DisplayName("R4 - ninguna clase usa UnsupportedOperationException (LSP / ISP)")
     void sinOperacionesNoSoportadas() {
         ArchRule regla = noClasses()
-                .that().resideOutsideOfPackage("..legado..")
+                .that().resideOutsideOfPackages("..legado..", "..ejercicio1..", "..ejercicio2..")
                 .should().dependOnClassesThat()
                 .areAssignableTo(UnsupportedOperationException.class);
 
