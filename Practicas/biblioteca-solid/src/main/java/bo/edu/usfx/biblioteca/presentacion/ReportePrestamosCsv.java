@@ -1,5 +1,6 @@
 package bo.edu.usfx.biblioteca.presentacion;
 
+import bo.edu.usfx.biblioteca.dominio.CatalogoPoliticas;
 import bo.edu.usfx.biblioteca.dominio.Prestamo;
 
 import java.time.LocalDate;
@@ -11,11 +12,12 @@ import java.util.List;
  */
 public class ReportePrestamosCsv {
 
-    public static String formatear(List<Prestamo> prestamos, int mes, int anio) {
+    public static String formatear(List<Prestamo> prestamos, int mes, int anio, CatalogoPoliticas catalogoPoliticas) {
         StringBuilder csv = new StringBuilder("codigo;titulo;fecha;limite;multa\n");
         for (Prestamo p : prestamos) {
             if (p.getFechaPrestamo().getMonthValue() == mes && p.getFechaPrestamo().getYear() == anio) {
-                double multa = calcularMulta(p, LocalDate.now());
+                long diasRetraso = ChronoUnit.DAYS.between(p.getFechaLimite(), LocalDate.now());
+                double multa = catalogoPoliticas.para(p.getUsuario()).multa(diasRetraso).doubleValue();
                 csv.append(p.getUsuario().getCodigo()).append(';')
                    .append(p.getLibro().getTitulo()).append(';')
                    .append(p.getFechaPrestamo()).append(';')
@@ -27,29 +29,7 @@ public class ReportePrestamosCsv {
         return csv.toString();
     }
 
-    private static double calcularMulta(Prestamo prestamo, LocalDate hoy) {
-        long diasRetraso = ChronoUnit.DAYS.between(prestamo.getFechaLimite(), hoy);
-        if (diasRetraso <= 0) {
-            return 0.0;
-        }
-
-        String tipo = prestamo.getUsuario().getTipo();
-        double multa;
-        if ("ESTUDIANTE".equals(tipo)) {
-            multa = diasRetraso * 2.0;
-        } else if ("DOCENTE".equals(tipo)) {
-            multa = diasRetraso * 1.0;
-        } else if ("ADMINISTRATIVO".equals(tipo)) {
-            multa = diasRetraso * 1.5;
-        } else if ("EXTERNO".equals(tipo)) {
-            multa = diasRetraso * 5.0;
-        } else {
-            multa = diasRetraso * 3.0;
-        }
-
-        if (multa > 200.0) {
-            multa = 200.0;
-        }
-        return multa;
+    public static String formatear(List<Prestamo> prestamos, int mes, int anio) {
+        return formatear(prestamos, mes, anio, new CatalogoPoliticas());
     }
 }

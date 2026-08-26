@@ -1,7 +1,9 @@
 package bo.edu.usfx.biblioteca.aplicacion;
 
+import bo.edu.usfx.biblioteca.dominio.CatalogoPoliticas;
 import bo.edu.usfx.biblioteca.dominio.Libro;
 import bo.edu.usfx.biblioteca.dominio.Notificador;
+import bo.edu.usfx.biblioteca.dominio.PoliticaPrestamo;
 import bo.edu.usfx.biblioteca.dominio.Prestamo;
 import bo.edu.usfx.biblioteca.dominio.RepositorioPrestamos;
 import bo.edu.usfx.biblioteca.dominio.Usuario;
@@ -12,47 +14,37 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
- * Servicio de Aplicacion que orquesta los casos de uso de prestamos.
+ * Servicio de Aplicacion que orquesta los casos de uso de prestamos cumpliendo SRP y OCP.
  */
 public class ServicioPrestamos {
 
     private final RepositorioPrestamos repositorio;
     private final Notificador notificador;
+    private final CatalogoPoliticas catalogoPoliticas;
 
-    public ServicioPrestamos(RepositorioPrestamos repositorio, Notificador notificador) {
+    public ServicioPrestamos(RepositorioPrestamos repositorio, Notificador notificador, CatalogoPoliticas catalogoPoliticas) {
         this.repositorio = repositorio;
         this.notificador = notificador;
+        this.catalogoPoliticas = catalogoPoliticas;
+    }
+
+    public ServicioPrestamos(RepositorioPrestamos repositorio, Notificador notificador) {
+        this(repositorio, notificador, new CatalogoPoliticas());
     }
 
     public Prestamo registrarPrestamo(Usuario usuario, Libro libro, LocalDate hoy) {
-        int diasPermitidos;
-        int maximoLibros;
-        if ("ESTUDIANTE".equals(usuario.getTipo())) {
-            diasPermitidos = 7;
-            maximoLibros = 3;
-        } else if ("DOCENTE".equals(usuario.getTipo())) {
-            diasPermitidos = 15;
-            maximoLibros = 5;
-        } else if ("ADMINISTRATIVO".equals(usuario.getTipo())) {
-            diasPermitidos = 10;
-            maximoLibros = 2;
-        } else if ("EXTERNO".equals(usuario.getTipo())) {
-            diasPermitidos = 3;
-            maximoLibros = 1;
-        } else {
-            throw new IllegalArgumentException("Tipo de usuario desconocido: " + usuario.getTipo());
-        }
+        PoliticaPrestamo politica = catalogoPoliticas.para(usuario);
 
         if (!libro.isDisponible()) {
             throw new IllegalStateException("El ejemplar " + libro.getSignatura() + " no esta disponible");
         }
 
         long activos = repositorio.activosDe(usuario).size();
-        if (activos >= maximoLibros) {
-            throw new IllegalStateException("El usuario alcanzo su limite de " + maximoLibros + " ejemplares");
+        if (activos >= politica.maximoEjemplares()) {
+            throw new IllegalStateException("El usuario alcanzo su limite de " + politica.maximoEjemplares() + " ejemplares");
         }
 
-        LocalDate limite = hoy.plusDays(diasPermitidos);
+        LocalDate limite = hoy.plusDays(politica.diasPermitidos());
         Prestamo prestamo = new Prestamo(usuario, libro, hoy, limite);
         repositorio.guardar(prestamo);
 
@@ -65,28 +57,8 @@ public class ServicioPrestamos {
 
     public double calcularMulta(Prestamo prestamo, LocalDate hoy) {
         long diasRetraso = ChronoUnit.DAYS.between(prestamo.getFechaLimite(), hoy);
-        if (diasRetraso <= 0) {
-            return 0.0;
-        }
-
-        String tipo = prestamo.getUsuario().getTipo();
-        double multa;
-        if ("ESTUDIANTE".equals(tipo)) {
-            multa = diasRetraso * 2.0;
-        } else if ("DOCENTE".equals(tipo)) {
-            multa = diasRetraso * 1.0;
-        } else if ("ADMINISTRATIVO".equals(tipo)) {
-            multa = diasRetraso * 1.5;
-        } else if ("EXTERNO".equals(tipo)) {
-            multa = diasRetraso * 5.0;
-        } else {
-            multa = diasRetraso * 3.0;
-        }
-
-        if (multa > 200.0) {
-            multa = 200.0;
-        }
-        return multa;
+        PoliticaPrestamo politica = catalogoPoliticas.para(prestamo.getUsuario());
+        return politica.multa(diasRetraso).doubleValue();
     }
 
     public String registrarDevolucion(Prestamo prestamo, LocalDate hoy) {
@@ -107,7 +79,7 @@ public class ServicioPrestamos {
 
     public String generarReporteMensual(int mes, int anio) {
         List<Prestamo> prestamos = repositorio.delMes(mes, anio);
-        return ReportePrestamosCsv.formatear(prestamos, mes, anio);
+        return ReportePrestamosCsv.formatear(prestamos, mes, anio, catalogoPoliticas);
     }
 
     public int enviarRecordatorios(LocalDate hoy) {
@@ -129,5 +101,9 @@ public class ServicioPrestamos {
 
     public Notificador getNotificador() {
         return notificador;
+    }
+
+    public CatalogoPoliticas getCatalogoPoliticas() {
+        return catalogoPoliticas;
     }
 }
