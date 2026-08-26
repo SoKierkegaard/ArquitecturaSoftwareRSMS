@@ -1,0 +1,18 @@
+﻿[MySQL jdbc:mysql://10.0.0.7:3306/biblioteca] INSERT INTO prestamo (codigo_usuario, signatura, fecha, limite) VALUES ('218123', '005.1 M379c', '2026-08-25', '2026-09-01')
+[MySQL jdbc:mysql://10.0.0.7:3306/biblioteca] UPDATE libro SET disponible = 0 WHERE signatura = '005.1 M379c'
+[SMTP smtp.usfx.bo:587] -> ana.quispe@usfx.bo :: Prestamo registrado
+=== BIBLIOTECA USFX ===
+Usuario : Ana Quispe (218123)
+Titulo  : Clean Architecture
+Entrega : 2026-09-01
+=======================
+[MySQL jdbc:mysql://10.0.0.7:3306/biblioteca] UPDATE prestamo SET devolucion = '2026-09-06', multa = 10.0 WHERE signatura = '005.1 M379c'
+[MySQL jdbc:mysql://10.0.0.7:3306/biblioteca] UPDATE libro SET disponible = 1 WHERE signatura = '005.1 M379c'
+[SMTP smtp.usfx.bo:587] -> ana.quispe@usfx.bo :: Multa por retraso
+Devolucion registrada. Multa: Bs 10.0
+
+--- Reporte del mes ---
+[MySQL jdbc:mysql://10.0.0.7:3306/biblioteca] SELECT * FROM prestamo WHERE MONTH(fecha) = 8 AND YEAR(fecha) = 2026
+[FileWriter] C:/reportes/biblioteca_2026_8.csv
+codigo;titulo;fecha;limite;multa
+218123;Clean Architecture;2026-08-25;2026-09-01;0.0
