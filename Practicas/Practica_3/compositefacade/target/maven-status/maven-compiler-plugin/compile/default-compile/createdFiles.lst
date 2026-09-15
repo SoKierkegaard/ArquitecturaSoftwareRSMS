@@ -1,0 +1,6 @@
+com\composite\SupermercadoFacade.class
+com\composite\pago\PagoFactory.class
+com\composite\pago\MetodoPago.class
+com\composite\pago\PagoEfectivo.class
+com\composite\pago\PagoTarjetaCredito.class
+com\composite\pago\PagoTransferenciaBancaria.class
