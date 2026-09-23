@@ -212,7 +212,17 @@ public class Main {
             }
 
             IDetalleVenta base = facade.getCatalogo().get(opcionProd - 1);
-            itemsParaCombo.add(base.clonarConCantidad(cant));
+            if (base instanceof ProductoSimple) {
+                ProductoSimple ps = (ProductoSimple) base;
+                itemsParaCombo.add(new ProductoSimple(ps.getDescripcion(), cant, ps.getPrecio()));
+            } else if (base instanceof ProductoCompuesto) {
+                ProductoCompuesto pc = (ProductoCompuesto) base;
+                ProductoCompuesto nuevoSubCompuesto = new ProductoCompuesto(pc.getDescripcion(), cant);
+                for (IDetalleVenta sub : pc.getProductos()) {
+                    nuevoSubCompuesto.agregarProducto(sub);
+                }
+                itemsParaCombo.add(nuevoSubCompuesto);
+            }
             System.out.printf("Añadido al combo: %dx '%s'%n", cant, base.getDescripcion());
 
             System.out.print("¿Desea añadir otro producto a este combo? (s/n): ");

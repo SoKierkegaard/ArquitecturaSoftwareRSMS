@@ -57,14 +57,6 @@ public class ProductoCompuesto implements IDetalleVenta {
         this.descripcion = descripcion;
     }
 
-    @Override
-    public IDetalleVenta clonarConCantidad(int nuevaCantidad) {
-        ProductoCompuesto copia = new ProductoCompuesto(this.descripcion, nuevaCantidad);
-        for (IDetalleVenta prod : this.productos) {
-            copia.agregarProducto(prod);
-        }
-        return copia;
-    }
 
     @Override
     public String toString() {

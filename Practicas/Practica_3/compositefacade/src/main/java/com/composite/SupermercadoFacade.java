@@ -134,12 +134,21 @@ public class SupermercadoFacade {
             return false;
         }
 
-        IDetalleVenta prototipo = catalogo.get(numeroProducto - 1);
-        IDetalleVenta itemParaVenta = prototipo.clonarConCantidad(cantidad);
-        ventaActual.agregarDetalle(itemParaVenta);
+        IDetalleVenta seleccionado = catalogo.get(numeroProducto - 1);
+        if (seleccionado instanceof ProductoSimple) {
+            ProductoSimple ps = (ProductoSimple) seleccionado;
+            ventaActual.agregarDetalle(new ProductoSimple(ps.getDescripcion(), cantidad, ps.getPrecio()));
+        } else if (seleccionado instanceof ProductoCompuesto) {
+            ProductoCompuesto pc = (ProductoCompuesto) seleccionado;
+            ProductoCompuesto nuevoCompuesto = new ProductoCompuesto(pc.getDescripcion(), cantidad);
+            for (IDetalleVenta subItem : pc.getProductos()) {
+                nuevoCompuesto.agregarProducto(subItem);
+            }
+            ventaActual.agregarDetalle(nuevoCompuesto);
+        }
 
         System.out.printf("[Éxito] Se agregaron %d unidad(es) de '%s' a la venta actual.%n",
-                cantidad, prototipo.getDescripcion());
+                cantidad, seleccionado.getDescripcion());
         return true;
     }
 

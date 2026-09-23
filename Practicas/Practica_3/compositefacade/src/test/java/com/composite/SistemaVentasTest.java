@@ -38,9 +38,9 @@ public class SistemaVentasTest {
         assertEquals(3, leche.getCantidad(), 0.001, "Cantidad de producto simple");
         assertTrue(leche.getDescripcion().equals("Leche 1L"), "Descripción producto simple");
 
-        IDetalleVenta clon = leche.clonarConCantidad(5);
-        assertEquals(5, clon.getCantidad(), 0.001, "Clonación con nueva cantidad");
-        assertEquals(7.50, clon.getPrecio(), 0.001, "Precio unitario preservado en clon");
+        ProductoSimple leche5 = new ProductoSimple(leche.getDescripcion(), 5, leche.getPrecio());
+        assertEquals(5, leche5.getCantidad(), 0.001, "Nueva cantidad para producto simple");
+        assertEquals(7.50, leche5.getPrecio(), 0.001, "Precio unitario preservado");
     }
 
     private static void testProductoCompuestoComposite() {

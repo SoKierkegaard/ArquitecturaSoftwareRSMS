@@ -43,10 +43,6 @@ public class ProductoSimple implements IDetalleVenta {
         this.descripcion = descripcion;
     }
 
-    @Override
-    public IDetalleVenta clonarConCantidad(int nuevaCantidad) {
-        return new ProductoSimple(this.descripcion, nuevaCantidad, this.precio);
-    }
 
     @Override
     public String toString() {
